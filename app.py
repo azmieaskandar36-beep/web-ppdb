@@ -2,6 +2,7 @@ import streamlit as st
 import datetime
 import pandas as pd
 import qrcode
+import os
 from io import BytesIO
 
 # ==========================================
@@ -10,79 +11,107 @@ from io import BytesIO
 st.set_page_config(page_title="PPDB Online 2026", page_icon="📝", layout="centered")
 
 # ==========================================
-# NYAWWA DESAIN: BACKGROUND GELAP & GLOWING EFFECT
+# SIMULASI DATABASE SERVER (EPHEMERAL DISK)
+# ==========================================
+def dapatkan_database():
+    file_db = "data_pendaftar.csv"
+    if os.path.exists(file_db):
+        try:
+            return pd.read_csv(file_db)
+        except:
+            return pd.DataFrame()
+    return pd.DataFrame()
+
+def simpan_ke_database(nama, nisn, sekolah, hp, jk, tempat, tanggal, alamat):
+    file_db = "data_pendaftar.csv"
+    baru = pd.DataFrame( if (nisn and len(nisn)>=5) else '12345'}",
+        "Nama Pendaftar": nama.upper() if nama else "AZMI",
+        "NISN": nisn if nisn else "0123456789",
+        "Asal Sekolah": sekolah.upper() if sekolah else "SEKOLAH ASAL",
+        "Jenis Kelamin": jk if jk else "Laki-laki",
+        "Tempat Lahir": tempat if tempat else "Sampang",
+        "Tanggal Lahir": str(tanggal) if tanggal else "2010-01-01",
+        "No. WhatsApp": hp if hp else "08123456789",
+        "Alamat": alamat if alamat else "Alamat Rumah",
+        "Status Dokumen": "LENGKAP"
+    }])
+    df_lama = dapatkan_database()
+    if not df_lama.empty:
+        # Menghindari duplikasi data jika tombol diklik berkali-kali
+        if nisn in df_lama.astype(str).values:
+            return
+        df_baru = pd.concat([df_lama, baru], ignore_index=True)
+    else:
+        df_baru = baru
+    df_baru.to_csv(file_db, index=False)
+
+# ==========================================
+# DESAIN WEBSITE: BACKGROUND GELAP & EFEK NEON KILAU
 # ==========================================
 st.markdown(
     """
     <style>
-    /* 1. Background Gelap Estetik & Elegan */
-   .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%)!important;
+    /* Background Gelap Estetik & Elegan */
+  .stApp {
+        background: linear-gradient(135deg, #090d16 0%, #111827 100%)!important;
     }
     
-    /* 2. Mengubah semua teks utama agar kontras (Putih Jernih) */
-   .stApp,.stApp p,.stApp label,.stApp h1,.stApp h2,.stApp h3,.stApp span,.stApp li,.stApp figcaption {
-        color: #f8fafc!important;
+    /* Mengubah semua teks utama agar kontras (Putih Jernih) */
+  .stApp,.stApp p,.stApp label,.stApp h1,.stApp h2,.stApp h3,.stApp span,.stApp li,.stApp figcaption {
+        color: #ffffff!important;
     }
     
-    /* 3. Desain Menu Tab Atas agar Mengkilau */
+    /* Warna teks khusus untuk status error agar tetap terbaca */
+  .stAlert p {
+        color: #ff4b4b!important;
+    }
+    
+    /* Desain Menu Tab Atas agar Mengkilau */
     button[data-baseweb="tab"] {
-        color: #94a3b8!important;
+        color: #9ca3af!important;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
-        color: #3b82f6!important;
-        border-bottom-color: #3b82f6!important;
+        color: #00d2ff!important;
+        border-bottom-color: #00d2ff!important;
         font-weight: bold!important;
-        text-shadow: 0 0 8px rgba(59, 130, 246, 0.6)!important;
+        text-shadow: 0 0 10px rgba(0, 210, 255, 0.8)!important;
     }
     
-    /* 4. Membuat Semua Kolom Input Memiliki Efek Kilau (Glowing Neon Blue) */
-   .stTextInput input,.stTextArea textarea,.stDateInput input {
-        background-color: #0f172a!important;
-        color: #f8fafc!important;
-        border: 1px solid #3b82f6!important; /* Border Biru Neon */
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.4)!important; /* Efek Kilau */
+    /* Membuat Semua Kolom Input Memiliki Efek Kilau Biru Neon */
+  .stTextInput input,.stTextArea textarea,.stDateInput input {
+        background-color: #1f2937!important;
+        color: #ffffff!important;
+        border: 2px solid #00d2ff!important;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.5)!important;
         border-radius: 8px!important;
     }
     
-    /* Dropdown pilihan (Selectbox) agar senada */
     div[data-baseweb="select"] {
-        background-color: #0f172a!important;
-        color: #f8fafc!important;
-        border: 1px solid #3b82f6!important;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.4)!important;
+        background-color: #1f2937!important;
+        color: #ffffff!important;
+        border: 2px solid #00d2ff!important;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.5)!important;
         border-radius: 8px!important;
     }
     
-    /* Efek Kilau Tambahan Saat Pengguna Mengeklik Kolom Input (Focus Mode) */
    .stTextInput input:focus,.stTextArea textarea:focus,.stDateInput input:focus {
-        border-color: #60a5fa!important;
-        box-shadow: 0 0 15px rgba(96, 165, 250, 0.7)!important;
+        border-color: #00f0ff!important;
+        box-shadow: 0 0 18px rgba(0, 240, 255, 0.9)!important;
     }
     
-    /* 5. Membuat Container Tabel, Kartu Bukti, dan Info Box agar Tidak Menyatu dengan Latar Belakang */
+    /* Membuat Container Tabel, Kartu Bukti, dan Info Box agar Menonjol */
     div[data-testid="stContainer"], table,.stAlert {
-        background-color: #1e293b!important;
-        border: 1.5px solid #3b82f6!important;
-        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4)!important; /* Kilau Pinggiran */
+        background-color: #111827!important;
+        border: 2px solid #00d2ff!important;
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.4)!important;
         border-radius: 12px!important;
     }
     
-    /* Menjaga teks di dalam tabel tetap berwarna putih */
     table, th, td {
-        color: #f8fafc!important;
-        border: 1px solid #334155!important;
-    }
-    
-    /* Container untuk Header Kosong */
-   .header-container {
-        padding: 10px 0px;
-        margin-bottom: 20px;
+        color: #ffffff!important;
+        border: 1px solid #374151!important;
     }
     </style>
-    
-    <div class="header-container">
-    </div>
     """,
     unsafe_allow_html=True
 )
@@ -94,8 +123,7 @@ st.markdown("---")
 # ==========================================
 # SISTEM TAB UTAMA (ANTI-RESET DATA)
 # ==========================================
-# DI SINI SUDAH DIPERBAIKI (Diisi nama tab pendaftaran agar bebas eror):
-tab1, tab2, tab3, tab4 = st.tabs(["Beranda", "Pendaftaran", "Syarat", "Kontak"])
+tab1, tab2, tab3, tab4 = st.tabs()
 
 # ==========================================
 # 📝 TAHAP 1: FORMULIR BIODATA
@@ -162,64 +190,111 @@ with tab3:
     setuju = st.checkbox("Saya menyatakan dengan sadar bahwa semua data yang saya masukkan di atas adalah benar, sah, dan sesuai dengan dokumen aslinya.", key="persetujuan")
     
     if setuju:
-        st.success("Validasi berhasil! Sekarang silakan klik tab **'🎉 Tahap 4: Selesai & Konfirmasi'** di bagian atas.")
+        st.success("Validasi berhasil! Sekarang silakan klik tab **'🎉 Tahap 4: Selesai'** di bagian atas.")
     else:
         st.info("ℹ️ Silakan centang kotak persetujuan di atas untuk memvalidasi pendaftaran Anda.")
 
 # ==========================================
-# 🎉 TAHAP 4: STATUS PENDAFTARAN & GENERATE QR CODE
+# 🎉 TAHAP 4: STATUS PENDAFTARAN & INTEGRASI KEAMANAN
 # ==========================================
 with tab4:
-    if st.session_state.get("persetujuan"):
-        st.subheader("Konfirmasi Final Pendaftaran")
-        st.write("Silakan klik tombol di bawah ini untuk mengirimkan seluruh data Anda secara resmi ke panitia PPDB.")
+    # 🔒 DETEKSI PINTOU BELAKANG ADMIN (Apakah URL memiliki?role=admin)
+    query_params = st.query_params
+    is_admin = query_params.get("role") == "admin"
+    
+    # ALAMAT WEBSITE PPDB GLOBAL KAMU
+    LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
+    LINK_ADMIN = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app/?role=admin"
+
+    # Fungsi internal untuk membuat gambar QR Code
+    def buat_qr(link_url):
+        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+        qr.add_data(link_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+
+    if is_admin:
+        # ==========================================
+        # TAMPILAN KHUSUS LAPTOP ADMIN (AZMI)
+        # ==========================================
+        st.subheader("🛠️ Panel Kontrol Admin (Panitia PPDB)")
+        st.write("Selamat datang Azmi! Berikut adalah database pendaftar PPDB Online yang tersimpan secara terpusat di server:")
+        
+        # Load database CSV terpusat
+        df_pendaftar = dapatkan_database()
+        
+        if not df_pendaftar.empty:
+            st.dataframe(df_pendaftar, use_container_width=True)
+            
+            # Buat tombol unduh untuk data CSV tersebut
+            csv_data = df_pendaftar.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Unduh Seluruh Data Pendaftar (Excel/CSV)",
+                data=csv_data,
+                file_name=f"PPDB_2026_Database_Lengkap.csv",
+                mime="text/csv",
+                type="primary"
+            )
+        else:
+            st.info("📭 Belum ada data calon siswa baru yang tersimpan di database server saat ini.")
+            
         st.markdown("---")
+        st.subheader("🔗 Dokumen Referensi Akses Sistem")
         
-        tombol_konfirmasi = st.button("🚀 Konfirmasi Pendaftaran Selesai", type="primary")
-        
-        if tombol_konfirmasi or st.session_state.get("is_submitted"):
-            st.session_state["is_submitted"] = True
-            
-            st.balloons()
-            st.success("🎉 Sukses! Data pendaftaran Anda telah dikonfirmasi dan berhasil dikirimkan ke database sekolah.")
-            st.write("Terima kasih telah melakukan pendaftaran. Proses selanjutnya akan diverifikasi oleh panitia.")
-            
+        # Tampilkan kedua link & QR Code hanya untuk referensi admin
+        kolom1, kolom2 = st.columns(2)
+        with kolom1:
+            st.markdown("### 🌐 **Akses Publik (Siswa)**")
+            st.info(f"**Link:**({LINK_PUBLIK})")
+            qr_publik_img = buat_qr(LINK_PUBLIK)
+            st.image(qr_publik_img, caption="QR Code Akses Publik", width=180)
+        with kolom2:
+            st.markdown("### 🔒 **Akses Admin (Panitia)**")
+            st.warning(f"**Link:**({LINK_ADMIN})")
+            qr_admin_img = buat_qr(LINK_ADMIN)
+            st.image(qr_admin_img, caption="QR Code Akses Admin", width=180)
+
+    else:
+        # ==========================================
+        # TAMPILAN JALUR UMUM (CALON SISWA / PUBLIK)
+        # ==========================================
+        if st.session_state.get("persetujuan"):
+            st.subheader("Konfirmasi Final Pendaftaran")
+            st.write("Silakan klik tombol di bawah ini untuk mengirimkan seluruh data Anda secara resmi ke panitia PPDB.")
             st.markdown("---")
             
-            # ==========================================
-            # OTOMATISASI QR CODE DAN LINK (PUBLIK & ADMIN)
-            # ==========================================
-            st.subheader("🔗 Akses Link & QR Code PPDB")
-            st.write("Berikut adalah link tautan beserta QR Code resmi untuk publik (siswa) dan admin (panitia).")
-
-            # Alamat Website Asli Global Milikmu
-            LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
-            LINK_ADMIN = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app/?role=admin"
-
-            # Fungsi internal untuk memproses pembuatan gambar QR Code
-            def buat_qr(link_url):
-                qr = qrcode.QRCode(version=1, box_size=10, border=2)
-                qr.add_data(link_url)
-                qr.make(fit=True)
-                img = qr.make_image(fill_color="black", back_color="white")
-                buf = BytesIO()
-                img.save(buf, format="PNG")
-                return buf.getvalue()
-
-            # Mengatur posisi grid layout berdampingan (Kolom 1 Publik, Kolom 2 Admin)
-            kolom1, kolom2 = st.columns(2)
-
-            with kolom1:
-                st.markdown("### 🌐 **Akses Publik (Siswa)**")
-                st.info(f"**Link:**({LINK_PUBLIK})")
+            tombol_konfirmasi = st.button("🚀 Konfirmasi Pendaftaran Selesai", type="primary")
+            
+            if tombol_konfirmasi or st.session_state.get("is_submitted"):
+                if tombol_konfirmasi and not st.session_state.get("is_submitted"):
+                    st.session_state["is_submitted"] = True
+                    # TULIS DATA SECARA PERMANEN KE SERVER DATABASE
+                    simpan_ke_database(
+                        st.session_state.get("nama"),
+                        st.session_state.get("nisn_input"),
+                        st.session_state.get("sekolah"),
+                        st.session_state.get("hp"),
+                        st.session_state.get("jk"),
+                        st.session_state.get("tempat"),
+                        st.session_state.get("tanggal"),
+                        st.session_state.get("alamat")
+                    )
+                
+                st.balloons()
+                st.success("🎉 Sukses! Data pendaftaran Anda telah dikonfirmasi dan berhasil dikirimkan ke database sekolah.")
+                st.write("Terima kasih telah melakukan pendaftaran. Proses selanjutnya akan diverifikasi oleh panitia.")
+                
+                st.markdown("---")
+                
+                # TAMPILKAN HANYA DATA PUBLIK (Siswa tidak akan pernah melihat link admin!)
+                st.subheader("🔗 Link & QR Code Bukti Pendaftaran")
+                st.write("Silakan simpan alamat tautan atau screenshot QR Code di bawah ini sebagai bukti sah pendaftaran Anda.")
+                
+                st.info(f"**Link PPDB Online:**({LINK_PUBLIK})")
                 qr_publik_img = buat_qr(LINK_PUBLIK)
                 st.image(qr_publik_img, caption="QR Code Akses Publik", width=180)
-
-            with kolom2:
-                st.markdown("### 🔒 **Akses Admin (Panitia)**")
-                st.warning(f"**Link:**({LINK_ADMIN})")
-                qr_admin_img = buat_qr(LINK_ADMIN)
-                st.image(qr_admin_img, caption="QR Code Akses Admin", width=180)
-                
-    else:
-        st.error("🔒 Akses Dikunci: Anda harus mengisi biodata di Tahap 1, berkas di Tahap 2, dan mencentang persetujuan di Tahap 3 terlebih dahulu.")
+        else:
+            st.error("🔒 Akses Dikunci: Anda harus mengisi biodata di Tahap 1, berkas di Tahap 2, dan mencentang persetujuan di Tahap 3 terlebih dahulu.")
