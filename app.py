@@ -24,21 +24,16 @@ def dapatkan_database():
 
 def simpan_ke_database(nama, nisn, sekolah, hp, jk, tempat, tanggal, alamat):
     file_db = "data_pendaftar.csv"
-    baru = pd.DataFrame( if (nisn and len(nisn)>=5) else '12345'}",
-        "Nama Pendaftar": nama.upper() if nama else "AZMI",
-        "NISN": nisn if nisn else "0123456789",
-        "Asal Sekolah": sekolah.upper() if sekolah else "SEKOLAH ASAL",
-        "Jenis Kelamin": jk if jk else "Laki-laki",
-        "Tempat Lahir": tempat if tempat else "Sampang",
-        "Tanggal Lahir": str(tanggal) if tanggal else "2010-01-01",
-        "No. WhatsApp": hp if hp else "08123456789",
-        "Alamat": alamat if alamat else "Alamat Rumah",
-        "Status Dokumen": "LENGKAP"
-    }])
+    
+    # Menghitung nomor registrasi unik berdasarkan 5 digit terakhir NISN secara aman
+    reg_suffix = str(nisn)[-5:] if (nisn and len(str(nisn)) >= 5) else "12345"
+    
+    baru = pd.DataFrame()
+    
     df_lama = dapatkan_database()
     if not df_lama.empty:
         # Menghindari duplikasi data jika tombol diklik berkali-kali
-        if nisn in df_lama.astype(str).values:
+        if str(nisn) in df_lama.astype(str).values:
             return
         df_baru = pd.concat([df_lama, baru], ignore_index=True)
     else:
@@ -52,17 +47,17 @@ st.markdown(
     """
     <style>
     /* Background Gelap Estetik & Elegan */
-  .stApp {
+   .stApp {
         background: linear-gradient(135deg, #090d16 0%, #111827 100%)!important;
     }
     
     /* Mengubah semua teks utama agar kontras (Putih Jernih) */
-  .stApp,.stApp p,.stApp label,.stApp h1,.stApp h2,.stApp h3,.stApp span,.stApp li,.stApp figcaption {
+   .stApp,.stApp p,.stApp label,.stApp h1,.stApp h2,.stApp h3,.stApp span,.stApp li,.stApp figcaption {
         color: #ffffff!important;
     }
     
     /* Warna teks khusus untuk status error agar tetap terbaca */
-  .stAlert p {
+   .stAlert p {
         color: #ff4b4b!important;
     }
     
@@ -78,11 +73,11 @@ st.markdown(
     }
     
     /* Membuat Semua Kolom Input Memiliki Efek Kilau Biru Neon */
-  .stTextInput input,.stTextArea textarea,.stDateInput input {
+   .stTextInput input,.stTextArea textarea,.stDateInput input {
         background-color: #1f2937!important;
         color: #ffffff!important;
-        border: 2px solid #00d2ff!important;
-        box-shadow: 0 0 10px rgba(0, 210, 255, 0.5)!important;
+        border: 2px solid #00d2ff!important; /* Border Biru Neon */
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.5)!important; /* Efek Kilau */
         border-radius: 8px!important;
     }
     
@@ -234,7 +229,7 @@ with tab4:
             st.download_button(
                 label="📥 Unduh Seluruh Data Pendaftar (Excel/CSV)",
                 data=csv_data,
-                file_name=f"PPDB_2026_Database_Lengkap.csv",
+                file_name="PPDB_2026_Database_Lengkap.csv",
                 mime="text/csv",
                 type="primary"
             )
@@ -248,12 +243,12 @@ with tab4:
         kolom1, kolom2 = st.columns(2)
         with kolom1:
             st.markdown("### 🌐 **Akses Publik (Siswa)**")
-            st.info(f"**Link:**({LINK_PUBLIK})")
+            st.info(f"**Link:** {LINK_PUBLIK}")
             qr_publik_img = buat_qr(LINK_PUBLIK)
             st.image(qr_publik_img, caption="QR Code Akses Publik", width=180)
         with kolom2:
             st.markdown("### 🔒 **Akses Admin (Panitia)**")
-            st.warning(f"**Link:**({LINK_ADMIN})")
+            st.warning(f"**Link:** {LINK_ADMIN}")
             qr_admin_img = buat_qr(LINK_ADMIN)
             st.image(qr_admin_img, caption="QR Code Akses Admin", width=180)
 
@@ -293,7 +288,7 @@ with tab4:
                 st.subheader("🔗 Link & QR Code Bukti Pendaftaran")
                 st.write("Silakan simpan alamat tautan atau screenshot QR Code di bawah ini sebagai bukti sah pendaftaran Anda.")
                 
-                st.info(f"**Link PPDB Online:**({LINK_PUBLIK})")
+                st.info(f"**Link PPDB Online:** {LINK_PUBLIK}")
                 qr_publik_img = buat_qr(LINK_PUBLIK)
                 st.image(qr_publik_img, caption="QR Code Akses Publik", width=180)
         else:
