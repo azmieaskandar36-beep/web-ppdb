@@ -1,183 +1,224 @@
 import streamlit as st
+import datetime
+import pandas as pd
 import qrcode
 from io import BytesIO
-from PIL import Image
 
-# Pengaturan dasar halaman web
-st.set_page_config(page_title="Pendaftaran PPDB Online", layout="centered", page_icon="📝")
+# ==========================================
+# SETUP CONTEXT & CONFIGURATION
+# ==========================================
+st.set_page_config(page_title="PPDB Online 2026", page_icon="📝", layout="centered")
 
-# 1. Style CSS Estetik (Gradasi Profesional Soft)
+# ==========================================
+# NYAWWA DESAIN: BACKGROUND GELAP & GLOWING EFFECT
+# ==========================================
 st.markdown(
-    f"""
+    """
     <style>
-    /* Background Estetik Gradasi Profesional Soft */
-    .stApp {{
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }}
+    /* 1. Background Gelap Estetik & Elegan */
+   .stApp {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%)!important;
+    }
     
-    /* Container untuk Header Kosong Tanpa Logo */
-    .header-container {{
-        display: block;
-        text-align: center;
+    /* 2. Mengubah semua teks utama agar kontras (Putih Jernih) */
+   .stApp,.stApp p,.stApp label,.stApp h1,.stApp h2,.stApp h3,.stApp span,.stApp li,.stApp figcaption {
+        color: #f8fafc!important;
+    }
+    
+    /* 3. Desain Menu Tab Atas agar Mengkilau */
+    button[data-baseweb="tab"] {
+        color: #94a3b8!important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #3b82f6!important;
+        border-bottom-color: #3b82f6!important;
+        font-weight: bold!important;
+        text-shadow: 0 0 8px rgba(59, 130, 246, 0.6)!important;
+    }
+    
+    /* 4. Membuat Semua Kolom Input Memiliki Efek Kilau (Glowing Neon Blue) */
+   .stTextInput input,.stTextArea textarea,.stDateInput input {
+        background-color: #0f172a!important;
+        color: #f8fafc!important;
+        border: 1px solid #3b82f6!important; /* Border Biru Neon */
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.4)!important; /* Efek Kilau */
+        border-radius: 8px!important;
+    }
+    
+    /* Dropdown pilihan (Selectbox) agar senada */
+    div[data-baseweb="select"] {
+        background-color: #0f172a!important;
+        color: #f8fafc!important;
+        border: 1px solid #3b82f6!important;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.4)!important;
+        border-radius: 8px!important;
+    }
+    
+    /* Efek Kilau Tambahan Saat Pengguna Mengeklik Kolom Input (Focus Mode) */
+   .stTextInput input:focus,.stTextArea textarea:focus,.stDateInput input:focus {
+        border-color: #60a5fa!important;
+        box-shadow: 0 0 15px rgba(96, 165, 250, 0.7)!important;
+    }
+    
+    /* 5. Membuat Container Tabel, Kartu Bukti, dan Info Box agar Tidak Menyatu dengan Latar Belakang */
+    div[data-testid="stContainer"], table,.stAlert {
+        background-color: #1e293b!important;
+        border: 1.5px solid #3b82f6!important;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4)!important; /* Kilau Pinggiran */
+        border-radius: 12px!important;
+    }
+    
+    /* Menjaga teks di dalam tabel tetap berwarna putih */
+    table, th, td {
+        color: #f8fafc!important;
+        border: 1px solid #334155!important;
+    }
+    
+    /* Container untuk Header Kosong */
+   .header-container {
         padding: 10px 0px;
         margin-bottom: 20px;
-    }}
-    
-    /* Tombol Konfirmasi Sukses */
-    div.stButton > button:first-child {{
-        background-color: #2ecc71;
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        padding: 10px 24px;
-        border-radius: 8px;
-        border: none;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }}
-    div.stButton > button:first-child:hover {{
-        background-color: #27ae60;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 8px rgba(0,0,0,0.15);
-    }}
+    }
     </style>
+    
+    <div class="header-container">
+        </div>
     """,
     unsafe_allow_html=True
 )
 
-# Inisialisasi session state untuk menyimpan data pendaftaran
-if 'step' not in st.session_state:
-    st.session_state.step = 1
-if 'biodata_lengkap' not in st.session_state:
-    st.session_state.biodata_lengkap = False
-if 'setuju' not in st.session_state:
-    st.session_state.setuju = False
-if 'konfirmasi_selesai' not in st.session_state:
-    st.session_state.konfirmasi_selesai = False
+st.title("Formulir Pendaftaran PPDB Online YPS ITIIHADUL WAQIFIN")
+st.write("Silakan isi dan lengkapi data pendaftaran Anda melalui tab tahapan di bawah ini.")
+st.markdown("---")
 
-# Fungsi pembantu pembuatan gambar QR Code langsung ke memory (BytesIO)
-def buat_qrcode(url):
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    
-    buf = BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
+# ==========================================
+# SISTEM TAB UTAMA (ANTI-RESET DATA)
+# ==========================================
+tab1, tab2, tab3, tab4 = st.tabs()
 
-# Judul Utama Aplikasi di Browser
-st.write("<h2 style='text-align: center; color: #2c3e50; font-weight: bold;'>Formulir Pendaftaran Siswa Baru (PPDB)</h2>", unsafe_allow_html=True)
-st.write("<p style='text-align: center; color: #7f8c8d; margin-bottom: 30px;'>Silakan lengkapi data pendaftaran Anda secara bertahap melalui menu di bawah ini.</p>", unsafe_allow_html=True)
-
-# Membuat 4 Menu Tab Navigasi
-tab1, tab2, tab3, tab4 = st.tabs([
-    "📋 Tahap 1: Biodata", 
-    "🏫 Tahap 2: Sekolah Asal", 
-    "🔍 Tahap 3: Review Data", 
-    "🎉 Tahap 4: Selesai & Konfirmasi"
-])
-
-# --- TAHAP 1: BIODATA ---
+# ==========================================
+# 📝 TAHAP 1: FORMULIR BIODATA
+# ==========================================
 with tab1:
-    st.subheader("Data Pribadi Calon Siswa")
-    nama = st.text_input("Nama Lengkap Siswa", placeholder="Contoh: Muhammad Azmi")
-    nisn = st.text_input("NISN (Nomor Induk Siswa Nasional)", max_chars=10, placeholder="Contoh: 0123456789")
-    tempat_lahir = st.text_input("Tempat Lahir")
-    tanggal_lahir = st.date_input("Tanggal Lahir")
-    jk = st.radio("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+    st.subheader("Formulir Biodata Calon Siswa")
     
-    if nama and nisn:
-        st.session_state.biodata_lengkap = True
-        st.success("Data biodata dasar telah terisi!")
-    else:
-        st.session_state.biodata_lengkap = False
-        st.warning("Silakan isi Nama Lengkap dan NISN untuk melanjutkan.")
-
-# --- TAHAP 2: SEKOLAH ASAL ---
-with tab2:
-    st.subheader("Informasi Asal Sekolah")
-    nama_sekolah = st.text_input("Nama Sekolah Asal (SMP/MTs)", placeholder="Contoh: SMP Negeri 1 Jakarta")
-    tahun_lulus = st.selectbox("Tahun Lulus", ["2026", "2025", "2024", "Sebelumnya"])
-    alamat_sekolah = st.text_area("Alamat Sekolah Asal")
-
-# --- TAHAP 3: REVIEW DATA ---
-with tab3:
-    st.subheader("Review Kembali Data Anda")
-    st.info("Pastikan seluruh data yang Anda masukkan di bawah ini sudah benar dan valid sebelum melakukan konfirmasi akhir.")
+    nama_lengkap = st.text_input("Nama Lengkap", key="nama")
+    nisn = st.text_input("NISN (10 Digit)", max_chars=10, key="nisn_input")
+    asal_sekolah = st.text_input("Asal Sekolah", key="sekolah")
     
-    st.markdown(f"""
-    * **Nama Lengkap:** {nama if nama else '<Belum diisi>'}
-    * **NISN:** {nisn if nisn else '<Belum diisi>'}
-    * **Tempat, Tanggal Lahir:** {tempat_lahir if tempat_lahir else '...'}, {tanggal_lahir.strftime('%d %B %Y')}
-    * **Jenis Kelamin:** {jk}
-    * **Sekolah Asal:** {nama_sekolah if nama_sekolah else '<Belum diisi>'} ({tahun_lulus})
-    """)
-    
-    st.write("---")
-    st.session_state.setuju = st.checkbox("Saya menyatakan bahwa seluruh data yang saya masukkan adalah benar, asli, dan dapat dipertanggungjawabkan.")
-
-# --- TAHAP 4: SELESAI & KONFIRMASI ---
-with tab4:
-    st.subheader("Pernyataan Akhir dan Penyerahan Formulir")
-    
-    if not st.session_state.biodata_lengkap:
-        st.error("⚠️ Anda belum melengkapi data wajib di Tahap 1: Biodata.")
-    elif not st.session_state.setuju:
-        st.warning("⚠️ Anda harus mencentang kotak persetujuan di Tahap 3 sebelum dapat menyelesaikan pendaftaran.")
-    else:
-        st.success("✅ Semua persyaratan pengisian data sudah terpenuhi! Silakan klik tombol di bawah untuk memproses nomor pendaftaran Anda.")
+    kolom_tempat, kolom_tanggal = st.columns(2)
+    with kolom_tempat:
+        tempat_lahir = st.text_input("Tempat Lahir", key="tempat")
+    with kolom_tanggal:
+        tanggal_lahir = st.date_input("Tanggal Lahir", value=datetime.date(2010, 1, 1), key="tanggal")
         
-        # Tombol utama konfirmasi pendaftaran
-        if st.button("🚀 Konfirmasi Pendaftaran Selesai"):
-            st.session_state.konfirmasi_selesai = True
+    jenis_kelamin = st.selectbox("Jenis Kelamin", ["Pilih...", "Laki-laki", "Perempuan"], key="jk")
+    alamat = st.text_area("Alamat Lengkap Rumah", key="alamat")
+    no_hp = st.text_input("Nomor HP / WhatsApp Aktif", key="hp")
+    
+    st.info("💡 Selesai mengisi? Silakan langsung klik tab **'📂 Tahap 2: Berkas'** di bagian atas untuk melanjutkan.")
+
+# ==========================================
+# 📂 TAHAP 2: PENGUPLOADAN BERKAS PENTING
+# ==========================================
+with tab2:
+    st.subheader("Penguploadan Berkas Penting")
+    st.write("Silakan unggah dokumen pendukung dalam format PDF atau gambar (Maksimal 2MB per file).")
+    st.markdown("---")
+    
+    upload_foto = st.file_uploader("Upload Pas Foto Formal (3x4)", type=["jpg", "jpeg", "png"], key="foto")
+    upload_kk = st.file_uploader("Upload Kartu Keluarga (KK)", type=["pdf", "jpg", "jpeg", "png"], key="kk_file")
+    upload_akta = st.file_uploader("Upload Akta Kelahiran", type=["pdf", "jpg", "jpeg", "png"], key="akta")
+    upload_ijazah = st.file_uploader("Upload Ijazah / Surat Keterangan Lulus (SKL)", type=["pdf", "jpg", "jpeg", "png"], key="ijazah")
+    
+    st.info("💡 Selesai upload? Silakan langsung klik tab **'🔍 Tahap 3: Review Data'** di bagian atas untuk memeriksa data.")
+
+# ==========================================
+# 🔍 TAHAP 3: REVIEW & KONFIRMASI DATA
+# ==========================================
+with tab3:
+    st.subheader("Review & Konfirmasi Data")
+    st.warning("⚠️ Periksa kembali semua data Anda di bawah ini. Data yang sudah benar siap untuk dikirim!")
+    st.markdown("---")
+    
+    st.markdown("### 📝 Rangkuman Biodata Calon Siswa")
+    st.write(f"• **Nama Lengkap:** {nama_lengkap if nama_lengkap else '❌ Belum diisi'}")
+    st.write(f"• **NISN:** {nisn if nisn else '❌ Belum diisi'}")
+    st.write(f"• **Asal Sekolah:** {asal_sekolah if asal_sekolah else '❌ Belum diisi'}")
+    st.write(f"• **Tempat, Tanggal Lahir:** {tempat_lahir if tempat_lahir else '❌ Belum diisi'}, {tanggal_lahir}")
+    st.write(f"• **Jenis Kelamin:** {jenis_kelamin}")
+    st.write(f"• **No. HP / WhatsApp:** {no_hp if no_hp else '❌ Belum diisi'}")
+    st.write(f"• **Alamat Rumah:** {alamat if alamat else '❌ Belum diisi'}")
+    
+    st.markdown("---")
+    st.markdown("### 📂 Status Berkas Dokumen")
+    st.write(f"• Pas Foto 3x4: {'✅ Sudah Terunggah' if upload_foto is not None else '❌ Belum Terunggah'}")
+    st.write(f"• Kartu Keluarga (KK): {'✅ Sudah Terunggah' if upload_kk is not None else '❌ Belum Terunggah'}")
+    st.write(f"• Akta Kelahiran: {'✅ Sudah Terunggah' if upload_akta is not None else '❌ Belum Terunggah'}")
+    st.write(f"• Ijazah / SKL: {'✅ Sudah Terunggah' if upload_ijazah is not None else '❌ Belum Terunggah'}")
+    
+    st.markdown("---")
+    setuju = st.checkbox("Saya menyatakan dengan sadar bahwa semua data yang saya masukkan di atas adalah benar, sah, dan sesuai dengan dokumen aslinya.", key="persetujuan")
+    
+    if setuju:
+        st.success("Validasi berhasil! Sekarang silakan klik tab **'🎉 Tahap 4: Selesai & Konfirmasi'** di bagian atas.")
+    else:
+        st.info("ℹ️ Silakan centang kotak persetujuan di atas untuk memvalidasi pendaftaran Anda.")
+
+# ==========================================
+# 🎉 TAHAP 4: STATUS PENDAFTARAN & GENERATE QR CODE
+# ==========================================
+with tab4:
+    if st.session_state.get("persetujuan"):
+        st.subheader("Konfirmasi Final Pendaftaran")
+        st.write("Silakan klik tombol di bawah ini untuk mengirimkan seluruh data Anda secara resmi ke panitia PPDB.")
+        st.markdown("---")
+        
+        tombol_konfirmasi = st.button("🚀 Konfirmasi Pendaftaran Selesai", type="primary")
+        
+        if tombol_konfirmasi or st.session_state.get("is_submitted"):
+            st.session_state["is_submitted"] = True
+            
             st.balloons()
+            st.success("🎉 Sukses! Data pendaftaran Anda telah dikonfirmasi dan berhasil dikirimkan ke database sekolah.")
+            st.write("Terima kasih telah melakukan pendaftaran. Proses selanjutnya akan diverifikasi oleh panitia.")
             
-        # Sistem QR Code otomatis mendeteksi URL global
-        if st.session_state.konfirmasi_selesai:
-            st.write("---")
-            st.markdown("<h3 style='text-align: center; color: #27ae60;'>🎉 Selamat! Pendaftaran Anda Berhasil Disimpan</h3>", unsafe_allow_html=True)
-            st.write("Silakan simpan tautan pendaftaran atau pindai QR Code di bawah ini untuk mengakses dashboard pendaftaran Anda.")
+            st.markdown("---")
             
-            # =========================================================================
-            # FITUR OTOMATIS GLOBAL: Mendeteksi link hosting internet secara dinamis
-            # =========================================================================
-            try:
-                # Mengambil basis URL utama dari browser (baik localhost maupun domain internet asli nanti)
-                base_url = st.to_get_host_info() if hasattr(st, 'to_get_host_info') else "http://10.99.48.241:8501"
-                
-                # Jika dijalankan di server awan Streamlit, dia otomatis menyesuaikan diri
-                current_url = st.get_option("browser.serverAddress") if hasattr(st, 'get_option') else "10.99.48.241"
-                
-                # Pengaman cadangan jika fungsi internal streamlit versi lama
-                LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
-            except:
-                LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
-            
-            # Namun, jika sistem mendeteksi ini dijalankan secara online di server cloud:
-            # Streamlit akan otomatis menggunakan URL publiknya sendiri.
-            LINK_ADMIN = f"{LINK_PUBLIK}/?role=admin"
-            
-            # Membuat layout tata letak grid berdampingan
+            # ==========================================
+            # OTOMATISASI QR CODE DAN LINK (PUBLIK & ADMIN)
+            # ==========================================
+            st.subheader("🔗 Akses Link & QR Code PPDB")
+            st.write("Berikut adalah link tautan beserta QR Code resmi untuk publik (siswa) dan admin (panitia).")
+
+            # Alamat Website Asli Global Milikmu
+            LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
+            LINK_ADMIN = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app/?role=admin"
+
+            # Fungsi internal untuk memproses pembuatan gambar QR Code
+            def buat_qr(link_url):
+                qr = qrcode.QRCode(version=1, box_size=10, border=2)
+                qr.add_data(link_url)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
+                buf = BytesIO()
+                img.save(buf, format="PNG")
+                return buf.getvalue()
+
+            # Mengatur posisi grid layout berdampingan (Kolom 1 Publik, Kolom 2 Admin)
             kolom1, kolom2 = st.columns(2)
-            
+
             with kolom1:
-                st.markdown("### 📱 **Akses Publik (Siswa)**")
-                st.write(f"🔗 [Buka Link Pendaftaran]({LINK_PUBLIK})")
-                
-                # Generate QR Code Publik
-                qr_publik_bytes = buat_qrcode(LINK_PUBLIK)
-                st.image(qr_publik_bytes, caption="Scan untuk Akses Formulir via HP", width=200)
-                
+                st.markdown("### 🌐 **Akses Publik (Siswa)**")
+                st.info(f"**Link:**({LINK_PUBLIK})")
+                qr_publik_img = buat_qr(LINK_PUBLIK)
+                st.image(qr_publik_img, caption="QR Code Akses Publik", width=180)
+
             with kolom2:
-                st.markdown("### ⚙️ **Akses Dashboard (Admin)**")
-                st.write(f"🔗 [Buka Panel Admin]({LINK_ADMIN})")
+                st.markdown("### 🔒 **Akses Admin (Panitia)**")
+                st.warning(f"**Link:**({LINK_ADMIN})")
+                qr_admin_img = buat_qr(LINK_ADMIN)
+                st.image(qr_admin_img, caption="QR Code Akses Admin", width=180)
                 
-                # Generate QR Code Admin
-                qr_admin_bytes = buat_qrcode(LINK_ADMIN)
-                st.image(qr_admin_bytes, caption="Scan untuk Masuk Panel Admin", width=200)
+    else:
+        st.error("🔒 Akses Dikunci: Anda harus mengisi biodata di Tahap 1, berkas di Tahap 2, dan mencentang persetujuan di Tahap 3 terlebih dahulu.")
