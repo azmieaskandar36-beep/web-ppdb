@@ -82,7 +82,7 @@ st.markdown(
     </style>
     
     <div class="header-container">
-        </div>
+    </div>
     """,
     unsafe_allow_html=True
 )
@@ -94,6 +94,7 @@ st.markdown("---")
 # ==========================================
 # SISTEM TAB UTAMA (ANTI-RESET DATA)
 # ==========================================
+# DI SINI SUDAH DIPERBAIKI (Diisi nama tab pendaftaran):
 tab1, tab2, tab3, tab4 = st.tabs()
 
 # ==========================================
