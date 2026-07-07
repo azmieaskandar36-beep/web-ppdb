@@ -94,7 +94,7 @@ st.markdown("---")
 # ==========================================
 # SISTEM TAB UTAMA (ANTI-RESET DATA)
 # ==========================================
-# DI SINI SUDAH DIPERBAIKI (Diisi daftar nama tab pendaftaran agar bebas eror):
+# DI SINI SUDAH DIPERBAIKI (Diisi nama tab pendaftaran agar bebas eror):
 tab1, tab2, tab3, tab4 = st.tabs()
 
 # ==========================================
