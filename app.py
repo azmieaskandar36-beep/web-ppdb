@@ -155,9 +155,9 @@ with tab4:
                 current_url = st.get_option("browser.serverAddress") if hasattr(st, 'get_option') else "10.99.48.241"
                 
                 # Pengaman cadangan jika fungsi internal streamlit versi lama
-                LINK_PUBLIK = f"http://10.99.48.241:8501"
+                LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
             except:
-                LINK_PUBLIK = "http://10.99.48.241:8501"
+                LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
             
             # Namun, jika sistem mendeteksi ini dijalankan secara online di server cloud:
             # Streamlit akan otomatis menggunakan URL publiknya sendiri.
