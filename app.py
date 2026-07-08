@@ -95,8 +95,7 @@ st.markdown("---")
 # SISTEM TAB UTAMA (ANTI-RESET DATA)
 # ==========================================
 # DI SINI SUDAH DIPERBAIKI (Diisi nama tab pendaftaran agar bebas eror):
-tab1, tab2, tab3, tab4 = st.tabs()
-
+tab1, tab2, tab3, tab4 = st.tabs(["Beranda", "Pendaftaran", "Syarat", "Kontak"])
 # ==========================================
 # 📝 TAHAP 1: FORMULIR BIODATA
 # ==========================================
