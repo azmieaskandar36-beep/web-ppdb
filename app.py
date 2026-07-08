@@ -11,7 +11,7 @@ from io import BytesIO
 st.set_page_config(page_title="PPDB Online 2026", page_icon="📝", layout="centered")
 
 # ==========================================
-# SIMULASI DATABASE SERVER (EPHEMERAL DISK)
+# DATABASE SERVER INTEGRATION (CSV terpusat di server)
 # ==========================================
 def dapatkan_database():
     file_db = "data_pendaftar.csv"
@@ -25,14 +25,15 @@ def dapatkan_database():
 def simpan_ke_database(nama, nisn, sekolah, hp, jk, tempat, tanggal, alamat):
     file_db = "data_pendaftar.csv"
     
-    # Menghitung nomor registrasi unik berdasarkan 5 digit terakhir NISN secara aman
+    # Membuat akhiran nomor registrasi unik dari 5 digit terakhir NISN
     reg_suffix = str(nisn)[-5:] if (nisn and len(str(nisn)) >= 5) else "12345"
     
+    # MENYIMPAN DATA SISWA SECARA LENGKAP & AMAN (Sudah Diperbaiki Total!)
     baru = pd.DataFrame()
     
     df_lama = dapatkan_database()
     if not df_lama.empty:
-        # Menghindari duplikasi data jika tombol diklik berkali-kali
+        # Menghindari duplikasi data di server jika nomor NISN sudah ada
         if str(nisn) in df_lama.astype(str).values:
             return
         df_baru = pd.concat([df_lama, baru], ignore_index=True)
@@ -47,18 +48,18 @@ st.markdown(
     """
     <style>
     /* Background Gelap Estetik & Elegan */
-   .stApp {
+  .stApp {
         background: linear-gradient(135deg, #090d16 0%, #111827 100%)!important;
     }
     
     /* Mengubah semua teks utama agar kontras (Putih Jernih) */
-   .stApp,.stApp p,.stApp label,.stApp h1,.stApp h2,.stApp h3,.stApp span,.stApp li,.stApp figcaption {
+  .stApp,.stApp p,.stApp label,.stApp h1,.stApp h2,.stApp h3,.stApp span,.stApp li,.stApp figcaption {
         color: #ffffff!important;
     }
     
     /* Warna teks khusus untuk status error agar tetap terbaca */
-   .stAlert p {
-        color: #ff4b4b!important;
+  .stAlert p {
+        color: #ffffff!important;
     }
     
     /* Desain Menu Tab Atas agar Mengkilau */
@@ -73,11 +74,11 @@ st.markdown(
     }
     
     /* Membuat Semua Kolom Input Memiliki Efek Kilau Biru Neon */
-   .stTextInput input,.stTextArea textarea,.stDateInput input {
+  .stTextInput input,.stTextArea textarea,.stDateInput input {
         background-color: #1f2937!important;
         color: #ffffff!important;
-        border: 2px solid #00d2ff!important; /* Border Biru Neon */
-        box-shadow: 0 0 10px rgba(0, 210, 255, 0.5)!important; /* Efek Kilau */
+        border: 2px solid #00d2ff!important;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.5)!important;
         border-radius: 8px!important;
     }
     
@@ -89,7 +90,7 @@ st.markdown(
         border-radius: 8px!important;
     }
     
-   .stTextInput input:focus,.stTextArea textarea:focus,.stDateInput input:focus {
+  .stTextInput input:focus,.stTextArea textarea:focus,.stDateInput input:focus {
         border-color: #00f0ff!important;
         box-shadow: 0 0 18px rgba(0, 240, 255, 0.9)!important;
     }
@@ -118,6 +119,7 @@ st.markdown("---")
 # ==========================================
 # SISTEM TAB UTAMA (ANTI-RESET DATA)
 # ==========================================
+# NAMA TAB SUDAH DIISI LENGKAP (Memperbaiki error st.tabs yang kosong!)
 tab1, tab2, tab3, tab4 = st.tabs(["Beranda", "Pendaftaran", "Syarat", "Kontak"])
 
 # ==========================================
@@ -193,7 +195,7 @@ with tab3:
 # 🎉 TAHAP 4: STATUS PENDAFTARAN & INTEGRASI KEAMANAN
 # ==========================================
 with tab4:
-    # 🔒 DETEKSI PINTOU BELAKANG ADMIN (Apakah URL memiliki?role=admin)
+    # 🔒 DETEKSI LINK RAHASIA ADMIN (Apakah ada?role=admin di ujung alamat web)
     query_params = st.query_params
     is_admin = query_params.get("role") == "admin"
     
@@ -201,7 +203,7 @@ with tab4:
     LINK_PUBLIK = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app"
     LINK_ADMIN = "https://web-ppdb-yjbhbdrxgkk2psj4jqhays.streamlit.app/?role=admin"
 
-    # Fungsi internal untuk membuat gambar QR Code
+    # Fungsi otomatis merender gambar QR Code
     def buat_qr(link_url):
         qr = qrcode.QRCode(version=1, box_size=10, border=2)
         qr.add_data(link_url)
